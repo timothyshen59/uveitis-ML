@@ -1,0 +1,6 @@
+/wandb/
+/research_env/
+/checkpoints/
+/data/
+__pycache__/
+*.py[cod]
