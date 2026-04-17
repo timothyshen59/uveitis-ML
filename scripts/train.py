@@ -19,18 +19,18 @@ import torch
 import torch.nn as nn
 from tqdm import tqdm
 
-import config
-from dataset import FundusDataset, make_loader
-from models.VitS import ViTBaseModel, load_model, encode_ordinal, ordinal_to_class
+from config.config import DATA, MODEL, OPTIM 
+from preprocessing.dataset import FundusDataset, make_loader
+from models.VitS import ViTBaseModel, load_model
 
 
 def train_epoch(model, loader, optimizer, criterion, device, num_classes):
     model.train()
     total_loss = 0.0
-    for images, labels in tqdm(loader, desc="  train", leave=False):
+    for images, labels, zone_num in tqdm(loader, desc="  train", leave=False):
         images, labels = images.to(device), labels.to(device)
         logits = model(images)
-        loss   = criterion(logits, encode_ordinal(labels, num_classes))
+        loss   = criterion(logits, labels)
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
@@ -42,11 +42,11 @@ def evaluate(model, loader, criterion, device, num_classes):
     model.eval()
     total_loss, total_correct, total_samples = 0.0, 0, 0
     with torch.no_grad():
-        for images, labels in tqdm(loader, desc="  eval ", leave=False):
+        for images, labels, zone_num in tqdm(loader, desc="  eval ", leave=False):
             images, labels = images.to(device), labels.to(device)
             logits = model(images)
-            total_loss    += criterion(logits, encode_ordinal(labels, num_classes)).item()
-            total_correct += (ordinal_to_class(logits) == labels).sum().item()
+            total_loss    += criterion(logits, labels)
+            total_correct += (logits.argmax(dim=-1) == labels).sum().item()
             total_samples += labels.numel()
     return total_loss / len(loader), total_correct / total_samples
 
@@ -84,13 +84,13 @@ def make_wandb_config(args, dcfg, mcfg, ocfg):
 def main():
     args = parse_args()
 
-    dcfg = config.DATA
-    mcfg = config.MODEL
-    ocfg = config.OPTIM
+    dcfg = DATA 
+    mcfg = MODEL
+    ocfg = OPTIM
 
     wb_config = make_wandb_config(args, dcfg, mcfg, ocfg)
     device    = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    criterion = nn.BCEWithLogitsLoss()
+    criterion = nn.CrossEntropyLoss()
 
     print(f"\n[config] epochs={args.epochs}  model_path={args.model_path or 'None (pretrained backbone)'}")
     print(f"[config] device={device}  batch={dcfg['batch_size']}")
