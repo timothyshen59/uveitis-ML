@@ -4,3 +4,5 @@
 /data/
 __pycache__/
 *.py[cod]
+uveitis_research.egg-info
+/model_weights/

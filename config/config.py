@@ -1,25 +1,28 @@
 # config.py
 
 DATA = {
-    "train_csv":  "/home/tim/UVEITIS_OCT_classidication/fold_0/train.csv",
-    "val_csv":    "/home/tim/UVEITIS_OCT_classidication/fold_0/val.csv",
-    "test_csv":   "/home/tim/UVEITIS_OCT_classidication/fold_0/test.csv",
-    "img_dir":    "/home/tim/uveitis-research/data/Samples_02_25_26_OD",
-    "batch_size": 64,
+    "train_csv":  "/home/tim/uveitis-research/data/folds/fold_2/train.csv",
+    "val_csv":    "/home/tim/uveitis-research/data/folds/fold_2/val.csv",
+    # "test_csv":   "/home/tim/UVEITIS_OCT_classidication/fold_3/test.csv",
+    "img_dir":    "/home/tim/uveitis-research/data/most_recent_samples",
+    "batch_size": 32,
     "workers":    4,
     "seed":       84,
 }
 
 MODEL = {
-    "backbone":    "swin_small_patch4_window7_224",
-    "pretrained":  True,
-    "num_zones":   10,
-    "hidden_dim":  256,
-    "dropout":     0.3,
-    "num_classes": 3,
+    "vit_backbone": "vit_small_patch16_224",
+    "cnn_backbone": "resnet18",
+    "hidden_dim":   256,
+    "proj_dim":     128,
+    "num_classes":  2,
+    "num_zones":    10,
+    "embed_dim":    64,
+    "freeze_backbone": True, 
 }
 
 OPTIM = {
-    "lr":           3e-5,
-    "weight_decay": 1e-4,
+    "lr":           1e-3,   # head lr
+    "backbone_lr":  1e-5,   # vit + cnn (100x lower)
+    "weight_decay": 1e-2,
 }

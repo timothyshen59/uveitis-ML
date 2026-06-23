@@ -3,7 +3,7 @@ import torch.nn as nn
 import timm
 
 class ViTBaseModel(nn.Module):
-    def __init__(self, backbone, hidden_dim=256, num_classes=3):
+    def __init__(self, backbone, hidden_dim=256, num_classes=2):
         super().__init__()
 
         self.backbone = timm.create_model(

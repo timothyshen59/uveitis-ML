@@ -150,8 +150,17 @@ def create_zone_masks(image_path):
 def create_masks_from_csv(image_dir, csv_path): 
     df = pd.read_csv(csv_path)
     
-    df["Image_File(FA)"] = df["Image_File(FA)"].str.replace("\\", "/", regex=False)
-    paths = df["Image_File(FA)"].dropna().unique()
+       
+    df["UWFFA"] = df["UWFFA"].str.replace("\\", "/", regex=False)
+
+    # Keep only from "Patient..." onward
+    df["UWFFA"] = df["UWFFA"].str.replace(
+        r"^.*?(Patient)",
+        r"\1",
+        regex=True
+    )
+
+    paths = df["UWFFA"].dropna().unique()
     
     print(f"[count] Processing {len(paths)} unique images...")
 
