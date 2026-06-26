@@ -19,6 +19,7 @@ import torch
 import torch.nn as nn
 from sklearn.utils.class_weight import compute_class_weight
 from tqdm import tqdm
+from pathlib import Path
 
 from config.config import DATA, MODEL, OPTIM 
 from preprocessing.dataset import FundusDataset, make_loader
@@ -156,7 +157,6 @@ def make_wandb_config(args, dcfg, mcfg, ocfg):
 def main():
     args = parse_args()
     
-
     dcfg = DATA 
     mcfg = MODEL
     ocfg = OPTIM
@@ -168,7 +168,6 @@ def main():
     np.random.seed(seed)
     torch.backends.cudnn.deterministic = False 
     torch.backends.cudnn.benchmark = True 
-
 
     wb_config = make_wandb_config(args, dcfg, mcfg, ocfg)
     device    = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -187,28 +186,16 @@ def main():
     # print(f"[data] train={len(train_df)}  val={len(val_df)}  test={len(test_df)}\n")
     print(f"[data] train={len(train_df)}  val={len(val_df)}\n")
 
-    # # compute pos_weight per zone from training data
-    # pos_weights = []
-    # for col in label_cols:
-    #     labels  = (train_df[col] > 0).astype(int).values
-    #     classes = np.array([0, 1])
-    #     weights = compute_class_weight('balanced', classes=classes, y=labels)
-    #     pos_weights.append(weights[1] / weights[0])
-    # pos_weight_tensor = torch.tensor(pos_weights, dtype=torch.float32).to(device)
-    # print(f"[data] pos_weights: {pos_weight_tensor}")
-
     criterion = nn.BCEWithLogitsLoss()
 
-    from pathlib import Path
-
-    cache_dir = Path(dcfg["img_dir"]) / "_tensor_cache_nozone10_pad10_scale05_384_UWFFP"
+    cache_dir = Path(dcfg["img_dir"]) / dcfg["cache_dir"]
 
     dataset_kwargs = dict(
         img_dir=dcfg["img_dir"],
         include_zone_crops=True,
         cache_dir=cache_dir,
         use_cache=True,
-        cache_version="tensor_nozone10_pad10_scale05_384_UWFFP",
+        cache_version=dcfg["cache_version"],       
         use_clahe=True,
         zone_nums=range(1, 10),   # Zones 1–9 only, removes Zone 10
         zone_pad=10,
@@ -268,16 +255,6 @@ def main():
 
     for epoch in range(args.epochs):
         
-        # if epoch == 9:
-        #     print("[train] Unfreezing later layers for finetuning...")
-        #     for block in model.vit.blocks[-3:]:
-        #         for param in block.parameters():
-        #             param.requires_grad = True
-        #     for param in model.cnn.layer4.parameters():
-        #         param.requires_grad = True
-        #     optimizer.add_param_group({"params": list(model.vit.blocks[-3:].parameters()), "lr": 1e-6})
-        #     optimizer.add_param_group({"params": list(model.cnn.layer4.parameters()), "lr": 1e-6})
-
         train_loss = train_epoch(model, train_loader, optimizer, criterion, device)
         val_loss, val_acc, val_f1, zone_acc = evaluate(model, val_loader, criterion,
                                                         device, mcfg["num_zones"])
@@ -299,7 +276,7 @@ def main():
     torch.save(best_state, ckpt_path)
     print(f"\n Saved best checkpoint → {ckpt_path}")
 
-    # --- Test split evaluation commented out ---
+
     # model.load_state_dict(best_state)
     # test_loss, test_acc, test_f1, test_zone_acc = evaluate(model, test_loader, criterion,
     #                                                         device, mcfg["num_zones"])

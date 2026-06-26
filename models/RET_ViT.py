@@ -77,3 +77,14 @@ def load_model(model_path, mcfg, device):
     return model
     
         
+            #Rewrite to helper function and load weghts optionall for CNN and ViT
+          # # Load RETFound weights
+        # checkpoint_path = "/home/tim/uveitis-research/model_weights/RETFound_mae_meh.pth"
+        # checkpoint       = torch.load(checkpoint_path, map_location='cpu')
+        # checkpoint_model = checkpoint['model']
+        # state_dict       = self.vit.state_dict()
+        # for k in ['head.weight', 'head.bias']:
+        #     if k in checkpoint_model and checkpoint_model[k].shape != state_dict[k].shape:
+        #         del checkpoint_model[k]
+        # msg = self.vit.load_state_dict(checkpoint_model, strict=False)
+        # print(f"[model] Loaded RETFound weights: {msg}")

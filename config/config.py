@@ -8,6 +8,9 @@ DATA = {
     "batch_size": 32,
     "workers":    4,
     "seed":       84,
+    "cache_dir":     "_tensor_cache_nozone10_pad10_scale05_384",
+    "cache_version": "v2",
+
 }
 
 MODEL = {
